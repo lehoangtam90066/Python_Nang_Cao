@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bệnh Viện ĐA Cấp Lê Hoàng Tam</title>
+    <style>
+      /* Cơ bản */
+      body {
+        font-family: "Times New Roman", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fc;
+        color: #333;
+      }
+
+      h1 {
+        background-color: #4caf50;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      h3 {
+        color: #333;
+        font-size: 1.5em;
+        margin-bottom: 10px;
+      }
+
+      /* Các section */
+      .section {
+        background-color: white;
+        padding: 20px;
+        margin: 20px auto;
+        border-radius: 10px;
+        max-width: 800px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        font-size: 1.1em;
+        color: #555;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 1em;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #4caf50;
+        background-color: #fff;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      /* Bảng kết quả */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      td {
+        background-color: #f9f9f9;
+      }
+
+      /* Kết nối */
+      #connect-status {
+        margin-top: 10px;
+        font-size: 1.2em;
+        color: #4caf50;
+      }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .section {
+          padding: 15px;
+          margin: 15px;
+        }
+
+        input[type="text"],
+        button {
+          font-size: 1em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bệnh Viện ĐA Cấp Lê Hoàng Tam</h1>
+
+    <div id="connect" class="section">
+      <h3>Kết Nối Database</h3>
+      <button onclick="connectDatabase()">Kết Nối</button>
+      <p id="connect-status"></p>
+    </div>
+
+    <div id="load-data" class="section">
+      <h3>Tải Dữ Liệu</h3>
+      <label for="table">Tên Bảng:</label>
+      <input type="text" id="table" value="thuocuong" />
+      <button onclick="loadData()">Tải Dữ Liệu</button>
+      <div id="result"></div>
+    </div>
+
+    <div id="search" class="section">
+      <h3>Tìm Kiếm</h3>
+      <div class="form-group">
+        <label for="ten">Tên Bệnh Nhân:</label>
+        <input type="text" id="ten" />
+      </div>
+      <div class="form-group">
+        <label for="benh">Mắc Bệnh:</label>
+        <input type="text" id="benh" />
+      </div>
+      <div class="form-group">
+        <label for="thuoc">Lên Đơn Thuốc:</label>
+        <input type="text" id="thuoc" />
+      </div>
+      <button onclick="searchData()">Tìm Kiếm</button>
+      <div id="search-result"></div>
+    </div>
+
+    <script>
+      async function connectDatabase() {
+        const response = await fetch("/connect");
+        const data = await response.json();
+        document.getElementById("connect-status").innerText = data.message;
+      }
+
+      async function loadData() {
+        const table = document.getElementById("table").value;
+        const response = await fetch(`/load_data?table=${table}`);
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          let tableHTML = "<table><thead><tr>";
+          tableHTML += `<th>Tên Bệnh</th>`; // Tên bệnh nhân
+          tableHTML += `<th>Loại Bệnh</th>`; // Loại bệnh
+          tableHTML += `<th>Thuốc</th>`; // Thuốc
+          tableHTML += "</tr></thead><tbody>";
+
+          data.data.forEach((row) => {
+            tableHTML += "<tr>";
+            tableHTML += `<td>${row[0]}</td>`; // Tên bệnh nhân
+            tableHTML += `<td>${row[1]}</td>`; // Loại bệnh
+            tableHTML += `<td>${row[2]}</td>`; // Thuốc
+            tableHTML += "</tr>";
+          });
+
+          tableHTML += "</tbody></table>";
+          document.getElementById("result").innerHTML = tableHTML;
+        } else {
+          document.getElementById("result").innerText = "Không có dữ liệu.";
+        }
+      }
+
+      async function searchData() {
+        const table = document.getElementById("table").value;
+        const ten = document.getElementById("ten").value;
+        const benh = document.getElementById("benh").value;
+        const thuoc = document.getElementById("thuoc").value;
+
+        const response = await fetch(
+          `/search?table=${table}&ten=${ten}&benh=${benh}&thuoc=${thuoc}`
+        );
+        const data = await response.json();
+
+        if (data.data && data.data.length > 0) {
+          let tableHTML = "<table><thead><tr>";
+          tableHTML += `<th>Tên Bệnh</th>`; // Tên bệnh nhân
+          tableHTML += `<th>Loại Bệnh</th>`; // Loại bệnh
+          tableHTML += `<th>Thuốc</th>`; // Thuốc
+          tableHTML += "</tr></thead><tbody>";
+
+          data.data.forEach((row) => {
+            tableHTML += "<tr>";
+            tableHTML += `<td>${row[0]}</td>`; // Tên bệnh nhân
+            tableHTML += `<td>${row[1]}</td>`; // Loại bệnh
+            tableHTML += `<td>${row[2]}</td>`; // Thuốc
+            tableHTML += "</tr>";
+          });
+
+          tableHTML += "</tbody></table>";
+          document.getElementById("search-result").innerHTML = tableHTML;
+        } else {
+          document.getElementById("search-result").innerText =
+            "Không có kết quả tìm kiếm.";
+        }
+      }
+    </script>
+  </body>
+</html>
